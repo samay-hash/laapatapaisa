@@ -1,3 +1,5 @@
+import { twMerge } from "tailwind-merge";
+
 type Variant = "primary" | "inverse" | "quiet";
 
 const base =
@@ -7,9 +9,10 @@ const variants: Record<Variant, string> = {
   primary: "bg-royal text-paper shadow-[inset_0_-2px_0_rgb(0_0_0/0.18)] hover:bg-royal-deep",
   inverse: "bg-paper text-royal-deep hover:bg-white focus-visible:outline-paper",
   quiet:
-    "text-ink underline decoration-rule decoration-2 underline-offset-[6px] hover:decoration-royal px-1",
+    "px-1 py-1 text-ink underline decoration-rule decoration-2 underline-offset-[6px] hover:decoration-royal",
 };
 
+/** Button classes. Later classes win, so `extra` can override padding or size safely. */
 export function buttonClass(variant: Variant = "primary", extra = ""): string {
-  return `${base} ${variants[variant]} ${extra}`.trim();
+  return twMerge(base, variants[variant], extra);
 }

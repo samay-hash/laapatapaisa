@@ -136,8 +136,8 @@ export default function HomePage() {
               <Link href="/check" className={buttonClass("primary", "px-6 py-3.5 text-base")}>
                 Start the free check
               </Link>
-              <Link href="#how" className={buttonClass("quiet")}>
-                See how it works
+              <Link href="/search" className={buttonClass("quiet")}>
+                Search by PIN code
               </Link>
             </div>
             <p className="mt-5 text-sm text-ink-faint">

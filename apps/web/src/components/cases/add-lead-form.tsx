@@ -36,41 +36,25 @@ export function AddLeadForm({ caseId }: { caseId: string }) {
             Lead added.
           </p>
         ) : null}
-        <div className="grid gap-6 sm:grid-cols-2">
-          <Field label="Where does it sit?" htmlFor="source" error={e.source}>
-            <select
-              id="source"
-              name="source"
-              defaultValue={v.source ?? ""}
-              required
-              className={inputClass}
-              {...describedBy("source", { error: e.source })}
-            >
-              <option value="" disabled>
-                Choose one
+        <Field label="Where does it sit?" htmlFor="source" error={e.source}>
+          <select
+            id="source"
+            name="source"
+            defaultValue={v.source ?? ""}
+            required
+            className={inputClass}
+            {...describedBy("source", { error: e.source })}
+          >
+            <option value="" disabled>
+              Choose one
+            </option>
+            {leadSources.map((s) => (
+              <option key={s} value={s}>
+                {sourceLabel[s]}
               </option>
-              {leadSources.map((s) => (
-                <option key={s} value={s}>
-                  {sourceLabel[s]}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Status" htmlFor="status" error={e.status}>
-            <select
-              id="status"
-              name="status"
-              defaultValue={v.status ?? "clue"}
-              className={inputClass}
-            >
-              {leadStatuses.map((s) => (
-                <option key={s} value={s}>
-                  {statusLabel[s]}
-                </option>
-              ))}
-            </select>
-          </Field>
-        </div>
+            ))}
+          </select>
+        </Field>
         <Field
           label="What did you find?"
           htmlFor="title"
@@ -87,54 +71,78 @@ export function AddLeadForm({ caseId }: { caseId: string }) {
             {...describedBy("title", { hint: true, error: e.title })}
           />
         </Field>
-        <div className="grid gap-6 sm:grid-cols-2">
-          <Field
-            label="Bank, company or insurer"
-            htmlFor="institution"
-            hint="Optional"
-            error={e.institution}
-          >
-            <input
-              id="institution"
-              name="institution"
-              defaultValue={v.institution}
-              maxLength={120}
-              className={inputClass}
-              {...describedBy("institution", { hint: true, error: e.institution })}
-            />
-          </Field>
-          <Field
-            label="Reference number"
-            htmlFor="reference"
-            hint="Folio, policy or account. Optional"
-            error={e.reference}
-          >
-            <input
-              id="reference"
-              name="reference"
-              defaultValue={v.reference}
-              maxLength={80}
-              autoComplete="off"
-              className={inputClass}
-              {...describedBy("reference", { hint: true, error: e.reference })}
-            />
-          </Field>
-        </div>
-        <Field
-          label="Amount in rupees"
-          htmlFor="amountRupees"
-          hint="If known. Whole rupees, no commas"
-          error={e.amountRupees}
+        <details
+          className="group/more"
+          open={Boolean(e.status || e.institution || e.reference || e.amountRupees)}
         >
-          <input
-            id="amountRupees"
-            name="amountRupees"
-            defaultValue={v.amountRupees}
-            inputMode="numeric"
-            className={`${inputClass} sm:max-w-60`}
-            {...describedBy("amountRupees", { hint: true, error: e.amountRupees })}
-          />
-        </Field>
+          <summary className="cursor-pointer list-none text-sm font-semibold text-royal underline decoration-royal/30 underline-offset-4 [&::-webkit-details-marker]:hidden">
+            More details (optional)
+          </summary>
+          <div className="mt-5 space-y-6">
+            <Field label="Status" htmlFor="status" error={e.status}>
+              <select
+                id="status"
+                name="status"
+                defaultValue={v.status ?? "clue"}
+                className={inputClass}
+              >
+                {leadStatuses.map((s) => (
+                  <option key={s} value={s}>
+                    {statusLabel[s]}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <div className="grid gap-6 sm:grid-cols-2">
+              <Field
+                label="Bank, company or insurer"
+                htmlFor="institution"
+                hint="Optional"
+                error={e.institution}
+              >
+                <input
+                  id="institution"
+                  name="institution"
+                  defaultValue={v.institution}
+                  maxLength={120}
+                  className={inputClass}
+                  {...describedBy("institution", { hint: true, error: e.institution })}
+                />
+              </Field>
+              <Field
+                label="Reference number"
+                htmlFor="reference"
+                hint="Folio, policy or account. Optional"
+                error={e.reference}
+              >
+                <input
+                  id="reference"
+                  name="reference"
+                  defaultValue={v.reference}
+                  maxLength={80}
+                  autoComplete="off"
+                  className={inputClass}
+                  {...describedBy("reference", { hint: true, error: e.reference })}
+                />
+              </Field>
+            </div>
+            <Field
+              label="Amount in rupees"
+              htmlFor="amountRupees"
+              hint="If known"
+              error={e.amountRupees}
+            >
+              <input
+                id="amountRupees"
+                name="amountRupees"
+                defaultValue={v.amountRupees}
+                inputMode="numeric"
+                className={`${inputClass} sm:max-w-60`}
+                {...describedBy("amountRupees", { hint: true, error: e.amountRupees })}
+              />
+            </Field>
+          </div>
+        </details>
         <button type="submit" disabled={pending} className={buttonClass("primary")}>
           {pending ? "Adding…" : "Add lead"}
         </button>

@@ -7,12 +7,16 @@ import {
   createCaseSchema,
   createLeadSchema,
   leadStatuses,
+  relations,
   variantSchema,
 } from "@/lib/validation/case";
+import { confirmRecord, RateLimitError } from "@/server/records-search";
+import { getCurrentUser } from "@/server/session";
 import {
   addLead,
   addVariant,
   createCase,
+  listCases,
   deleteCase,
   deleteLead,
   removeVariant,
@@ -119,4 +123,75 @@ export async function removeVariantAction(caseId: string, variantId: string): Pr
   if (!(await removeVariant(caseId, variantId))) return { error: NOT_FOUND };
   refresh();
   return { ok: true };
+}
+
+const kindLabel: Record<string, string> = {
+  unclaimed_dividend: "Unclaimed dividend",
+  shares_transferred_to_iepf: "Shares moved to IEPF",
+  other: "Unclaimed amount",
+};
+
+const saveRecordInput = z.object({
+  recordId: z.uuid(),
+  name: z.string().trim().min(2).max(120),
+  father: z.string().trim().max(120).default(""),
+  caseId: z.uuid().optional(),
+  relation: z.enum(relations).optional(),
+  isLiving: z.boolean().optional(),
+});
+
+/**
+ * Adds a confirmed public record to a case as a "found" lead, creating the case
+ * first when needed. Re-confirms the record on the server; never trusts the client.
+ */
+export async function saveRecordAction(
+  input: z.input<typeof saveRecordInput>,
+): Promise<FormState & { caseId?: string }> {
+  const parsed = saveRecordInput.safeParse(input);
+  if (!parsed.success) return { error: "Choose a case, or say how they are related to you." };
+  const { recordId, name, father, relation, isLiving } = parsed.data;
+
+  let record;
+  try {
+    record = await confirmRecord(recordId, name, father);
+  } catch (error) {
+    if (error instanceof RateLimitError) return { error: error.message };
+    throw error;
+  }
+  if (record === "signin") return { error: "Log in to save this record." };
+  if (record === "mismatch" || record === null)
+    return { error: "This record could not be confirmed." };
+
+  let caseId = parsed.data.caseId;
+  if (!caseId) {
+    if (!relation || isLiving === undefined) {
+      return { error: "Say how they are related to you, and whether they are living." };
+    }
+    caseId = await createCase({
+      fullName: name,
+      relation,
+      isLiving: relation === "self" ? true : isLiving,
+      birthYear: null,
+      deathYear: null,
+      cities: [],
+      occupation: null,
+    });
+  }
+
+  const ok = await addLead(caseId, {
+    source: "shares",
+    status: "found",
+    title: `${kindLabel[record.kind] ?? "Unclaimed amount"}: ${record.company}${record.financialYear ? ` (${record.financialYear} list)` : ""}`,
+    institution: record.company,
+    reference: record.folio,
+    amountRupees: record.amountPaise == null ? null : Math.round(record.amountPaise / 100),
+  });
+  if (!ok) return { error: NOT_FOUND };
+  return { ok: true, caseId };
+}
+
+/** The signed-in user's cases, for choosing where to save a record. Empty when signed out. */
+export async function myCasesAction(): Promise<{ id: string; fullName: string }[]> {
+  if (!(await getCurrentUser())) return [];
+  return (await listCases()).map((c) => ({ id: c.id, fullName: c.fullName }));
 }

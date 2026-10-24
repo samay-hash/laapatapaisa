@@ -25,6 +25,9 @@ export async function SiteFooter() {
           aria-label="Footer"
           className="grid grid-cols-2 content-start gap-x-10 gap-y-3 text-sm md:justify-self-end"
         >
+          <Link href="/search" className="text-ink-soft hover:text-ink">
+            Search by PIN
+          </Link>
           <Link href="/check" className="text-ink-soft hover:text-ink">
             Free check
           </Link>

@@ -75,7 +75,10 @@ export const createLeadSchema = z.object({
   institution: optionalText(120),
   reference: optionalText(80),
   amountRupees: z
-    .union([z.literal(""), z.coerce.number().int().min(0).max(1_000_000_000_000)])
+    .preprocess(
+      (v) => (typeof v === "string" ? v.replace(/[₹,\s]/g, "").replace(/\.0+$/, "") : v),
+      z.union([z.literal(""), z.coerce.number().int().min(0).max(1_000_000_000_000)]),
+    )
     .optional()
     .transform((v) => (typeof v === "number" ? v : null)),
   status: z.enum(leadStatuses).default("clue"),

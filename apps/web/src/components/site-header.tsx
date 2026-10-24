@@ -3,6 +3,7 @@ import { LogoMark } from "@/components/logo-mark";
 import { buttonClass } from "@/components/ui/button";
 
 const nav = [
+  { href: "/search", label: "Search by PIN" },
   { href: "/#where", label: "Where money hides" },
   { href: "/#how", label: "How it works" },
   { href: "/#pricing", label: "Pricing" },

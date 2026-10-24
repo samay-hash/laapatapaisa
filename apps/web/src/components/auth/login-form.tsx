@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useRef, useState } from "react";
 import { describedBy, Field, FormError, inputClass } from "@/components/ui/field";
 import { buttonClass } from "@/components/ui/button";
@@ -10,7 +10,6 @@ import { safeNext } from "@/lib/safe-next";
 type Step = "email" | "code";
 
 export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
-  const router = useRouter();
   const next = safeNext(useSearchParams().get("next"));
   const [step, setStep] = useState<Step>("email");
   const [email, setEmail] = useState("");
@@ -52,8 +51,9 @@ export function LoginForm({ googleEnabled }: { googleEnabled: boolean }) {
       );
       return;
     }
-    router.replace(next);
-    router.refresh();
+    // A full load, not a client navigation: pages kept alive from before the
+    // login would otherwise keep showing their signed-out state.
+    window.location.assign(next);
   }
 
   async function google() {

@@ -22,6 +22,13 @@
       "when": 1792815558794,
       "tag": "0002_lock_down_supabase_api",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792816375139,
+      "tag": "0003_unclaimed_records",
+      "breakpoints": true
     }
   ]
 }
