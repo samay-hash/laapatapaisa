@@ -1,0 +1,104 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens. The palette borrows from the material world of the product:
+ * passbook paper, fountain-pen ink, and the violet rubber stamp of an Indian
+ * government office. Change colours here, never inline in components.
+ */
+@theme {
+  --color-paper: #f7f1e3;
+  --color-paper-deep: #efe6cf;
+  --color-paper-edge: #e4d8bb;
+  --color-rule: #dccdab;
+  --color-ink: #1c2230;
+  --color-ink-soft: #4f5667;
+  --color-ink-faint: #7a7f8c;
+  --color-royal: #2b3f94;
+  --color-royal-deep: #1f2f73;
+  --color-stamp: #5b3f8c;
+  --color-ledger: #2e6b55;
+  --color-ledger-wash: #dfe8d6;
+
+  --font-display: var(--font-spectral), "Iowan Old Style", Georgia, serif;
+  --font-sans: var(--font-public-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-deva: var(--font-tiro-deva), "Noto Serif Devanagari", serif;
+
+  --animate-stamp: stamp 520ms cubic-bezier(0.2, 0.9, 0.25, 1.15) 700ms both;
+}
+
+@keyframes stamp {
+  0% {
+    opacity: 0;
+    transform: rotate(-14deg) scale(1.8);
+  }
+  70% {
+    opacity: 0.92;
+    transform: rotate(-9deg) scale(0.96);
+  }
+  100% {
+    opacity: 0.88;
+    transform: rotate(-9deg) scale(1);
+  }
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-feature-settings: "kern", "liga";
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background-color: var(--color-royal);
+    color: var(--color-paper);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-royal);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-delay: 0ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* Page container: one width and one gutter rule for the whole site. */
+  .shell {
+    width: 100%;
+    max-width: 72rem;
+    margin-inline: auto;
+    padding-inline: 1.25rem;
+
+    @media (min-width: 40rem) {
+      padding-inline: 2rem;
+    }
+
+    @media (min-width: 64rem) {
+      padding-inline: 3rem;
+    }
+  }
+}
