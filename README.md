@@ -41,6 +41,14 @@ pnpm dev                 # http://localhost:3000
 
 Without `RESEND_API_KEY`, login codes are printed in the `pnpm dev` terminal.
 
+To store a secret without it showing on screen or in shell history:
+
+```bash
+pnpm env:set DATABASE_URL     # prompts, then writes apps/web/.env.local
+```
+
+To use Supabase instead of the local Docker database, set `DATABASE_URL` to the project's Session pooler connection string, then run `pnpm db:migrate`.
+
 ## Changing the database
 
 1. Edit `apps/web/src/server/db/schema/`.
