@@ -8,6 +8,20 @@
       "when": 1792811623269,
       "tag": "0000_thick_callisto",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792815558227,
+      "tag": "0001_enable_rls",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792815558794,
+      "tag": "0002_lock_down_supabase_api",
+      "breakpoints": true
     }
   ]
 }

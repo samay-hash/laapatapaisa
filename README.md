@@ -72,6 +72,8 @@ CI runs the same steps on every push and pull request.
 - **Validate every input** with the zod schemas in `src/lib/validation/` before it reaches the database. Server actions re-check ids too, since they can be called directly.
 - **The free check never sends answers anywhere.** It runs entirely in the browser and shares only the public `/check` link.
 - **Security headers** (CSP, HSTS, frame denial and more) live in `apps/web/next.config.ts`. The CSP allows inline scripts because Next.js needs them for prerendered pages; a nonce-based CSP would turn off prerendering. So never use `dangerouslySetInnerHTML` with user content.
+- **Database connections are encrypted and verified.** `src/server/db/ssl.ts` pins Supabase's root CA (valid until 2031-04-26). Never switch to `rejectUnauthorized: false`.
+- **Supabase's auto-generated APIs are locked out.** Every table has row level security on and the `anon`/`authenticated` roles have no grants (migration `0002`). New tables must call `.enableRLS()` in the schema.
 - **Login codes** are hashed in the database, expire in 10 minutes, allow 5 attempts, and sending is rate limited in production.
 - **Facts about institutions** live in `src/content/sources.ts`. Re-check rules and official links there before launch and whenever regulators change them.
 - **Design tokens** (colours, fonts) live in `src/app/globals.css`. Don't hard-code colours in components.

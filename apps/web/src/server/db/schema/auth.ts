@@ -15,7 +15,7 @@ export const user = pgTable("user", {
     .defaultNow()
     .$onUpdate(() => new Date())
     .notNull(),
-});
+}).enableRLS();
 
 export const session = pgTable(
   "session",
@@ -34,7 +34,7 @@ export const session = pgTable(
       .references(() => user.id, { onDelete: "cascade" }),
   },
   (t) => [index("session_user_id_idx").on(t.userId)],
-);
+).enableRLS();
 
 export const account = pgTable(
   "account",
@@ -58,7 +58,7 @@ export const account = pgTable(
       .notNull(),
   },
   (t) => [index("account_user_id_idx").on(t.userId)],
-);
+).enableRLS();
 
 export const verification = pgTable(
   "verification",
@@ -74,11 +74,11 @@ export const verification = pgTable(
       .notNull(),
   },
   (t) => [index("verification_identifier_idx").on(t.identifier)],
-);
+).enableRLS();
 
 export const rateLimit = pgTable("rate_limit", {
   id: text("id").primaryKey(),
   key: text("key").notNull().unique(),
   count: integer("count").notNull(),
   lastRequest: bigint("last_request", { mode: "number" }).notNull(),
-});
+}).enableRLS();

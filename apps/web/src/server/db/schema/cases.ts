@@ -67,7 +67,7 @@ export const familyCase = pgTable(
     ...timestamps,
   },
   (t) => [index("case_user_id_idx").on(t.userId)],
-);
+).enableRLS();
 
 export const nameVariant = pgTable(
   "name_variant",
@@ -81,7 +81,7 @@ export const nameVariant = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (t) => [uniqueIndex("name_variant_case_value_idx").on(t.caseId, t.value)],
-);
+).enableRLS();
 
 export const lead = pgTable(
   "lead",
@@ -101,7 +101,7 @@ export const lead = pgTable(
     ...timestamps,
   },
   (t) => [index("lead_case_id_idx").on(t.caseId)],
-);
+).enableRLS();
 
 export type FamilyCase = typeof familyCase.$inferSelect;
 export type NameVariant = typeof nameVariant.$inferSelect;
