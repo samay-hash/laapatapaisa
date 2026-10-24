@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, type RefObject } from "react";
 import { buttonClass } from "@/components/ui/button";
 import type { CheckResult, Priority } from "@/lib/check/evaluate";
@@ -88,7 +89,18 @@ export function CheckResults({
         <p className="mt-3 max-w-2xl leading-relaxed text-ink-soft">{result.claimPath.body}</p>
       </section>
 
-      <div className="mt-12 flex flex-wrap items-center gap-x-6 gap-y-4">
+      <section className="mt-12 border-t-2 border-ink pt-8">
+        <h2 className="font-display text-2xl font-medium text-ink">Keep track as you search</h2>
+        <p className="mt-2 max-w-xl leading-relaxed text-ink-soft">
+          Create a free case to get the spellings to search for, and a place to record every clue,
+          search and claim.
+        </p>
+        <Link href="/cases/new" className={buttonClass("primary", "mt-6")}>
+          Create a free case
+        </Link>
+      </section>
+
+      <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-4">
         <ShareButton />
         <button type="button" onClick={onRestart} className={buttonClass("quiet")}>
           Check another person
@@ -123,7 +135,7 @@ function ShareButton() {
   }
 
   return (
-    <button type="button" onClick={share} className={buttonClass("primary")}>
+    <button type="button" onClick={share} className={buttonClass("quiet")}>
       {copied ? "Link copied" : "Send this check to family"}
     </button>
   );

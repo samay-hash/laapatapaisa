@@ -16,6 +16,23 @@ jobs:
   check:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: laapata
+          POSTGRES_PASSWORD: ci_only
+          POSTGRES_DB: laapata
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U laapata -d laapata"
+          --health-interval 2s --health-timeout 3s --health-retries 20
+    env:
+      # CI-only values. Real secrets live in the hosting provider, never here.
+      DATABASE_URL: postgres://laapata:ci_only@127.0.0.1:5432/laapata
+      BETTER_AUTH_SECRET: ci-only-secret-not-used-anywhere-else-000000
+      BETTER_AUTH_URL: http://localhost:3000
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -28,4 +45,11 @@ jobs:
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test
+      - name: Apply database migrations
+        run: pnpm db:migrate
+      - name: Fail if the schema changed without a migration
+        run: |
+          pnpm --filter web db:generate
+          test -z "$(git status --porcelain apps/web/drizzle)" || {
+            echo "Schema changed without a migration. Run: pnpm --filter web db:generate"; exit 1; }
       - run: pnpm build

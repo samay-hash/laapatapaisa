@@ -25,17 +25,25 @@ export function SiteHeader({ showCta = true }: { showCta?: boolean }) {
             ))}
           </ul>
         </nav>
-        {showCta ? (
+        <div className="flex items-center gap-5">
           <Link
-            href="/check"
-            className={buttonClass("primary", "px-4 py-2.5 text-sm whitespace-nowrap")}
+            href="/login"
+            className="text-[0.95rem] whitespace-nowrap text-ink-soft hover:text-ink"
           >
-            <span className="sm:hidden">Free check</span>
-            <span className="hidden sm:inline">Start the free check</span>
+            Log in
           </Link>
-        ) : (
-          <span aria-hidden="true" />
-        )}
+          {showCta ? (
+            // Hidden on phones: the hero's own button sits just below.
+            <span className="hidden sm:block">
+              <Link
+                href="/check"
+                className={buttonClass("primary", "px-4 py-2.5 text-sm whitespace-nowrap")}
+              >
+                Start the free check
+              </Link>
+            </span>
+          ) : null}
+        </div>
       </div>
     </header>
   );
