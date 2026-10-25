@@ -72,6 +72,10 @@ export type PinSummary = {
   amountPaise: number;
   companies: number;
   place: string | null;
+  /** Companies holding the most money for this PIN. */
+  topCompanies: { company: string; records: number; amountPaise: number }[];
+  /** Nearby PINs (same district code) that do have records. */
+  nearby: { pinCode: string; records: number; amountPaise: number; place: string | null }[];
   /** How much the whole index covers, so an empty result can say so honestly. */
   coverage: { companies: number; records: number };
 };
@@ -87,16 +91,60 @@ export async function pinSummary(pinCode: string): Promise<PinSummary> {
     .from(unclaimedRecord)
     .innerJoin(unclaimedSource, eq(unclaimedSource.id, unclaimedRecord.sourceId))
     .where(eq(unclaimedRecord.pinCode, pinCode));
+  const [place, topCompanies, nearby, cover] = await Promise.all([
+    placeForPin(pinCode),
+    companiesForPin(pinCode),
+    nearbyPins(pinCode),
+    coverage(),
+  ]);
   const summary = {
     pinCode,
     records: row?.records ?? 0,
     amountPaise: row?.amountPaise ?? 0,
     companies: row?.companies ?? 0,
-    place: await placeForPin(pinCode),
-    coverage: await coverage(),
+    place,
+    topCompanies,
+    nearby,
+    coverage: cover,
   };
   await log("summary", ipHash, null, pinCode, null, summary.records);
   return summary;
+}
+
+async function companiesForPin(pinCode: string): Promise<PinSummary["topCompanies"]> {
+  return db
+    .select({
+      company: unclaimedSource.company,
+      records: count(),
+      amountPaise: sql<number>`coalesce(sum(${unclaimedRecord.amountPaise}), 0)`.mapWith(Number),
+    })
+    .from(unclaimedRecord)
+    .innerJoin(unclaimedSource, eq(unclaimedSource.id, unclaimedRecord.sourceId))
+    .where(eq(unclaimedRecord.pinCode, pinCode))
+    .groupBy(unclaimedSource.company)
+    .orderBy(sql`3 desc`)
+    .limit(5);
+}
+
+/** PINs sharing the first three digits (the sorting district), closest first. */
+async function nearbyPins(pinCode: string): Promise<PinSummary["nearby"]> {
+  const rows = await db
+    .select({
+      pinCode: unclaimedRecord.pinCode,
+      records: count(),
+      amountPaise: sql<number>`coalesce(sum(${unclaimedRecord.amountPaise}), 0)`.mapWith(Number),
+    })
+    .from(unclaimedRecord)
+    .where(
+      and(
+        sql`${unclaimedRecord.pinCode} like ${`${pinCode.slice(0, 3)}%`}`,
+        sql`${unclaimedRecord.pinCode} <> ${pinCode}`,
+      ),
+    )
+    .groupBy(unclaimedRecord.pinCode)
+    .orderBy(sql`abs(${unclaimedRecord.pinCode}::int - ${Number(pinCode)})`)
+    .limit(6);
+  return Promise.all(rows.map(async (r) => ({ ...r, place: await placeForPin(r.pinCode) })));
 }
 
 async function coverage(): Promise<PinSummary["coverage"]> {

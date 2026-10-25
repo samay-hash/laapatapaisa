@@ -17,6 +17,7 @@
     "data:ingest-list": "tsx scripts/ingest-list.mts"
   },
   "dependencies": {
+    "@trigger.dev/sdk": "4.8.1",
     "better-auth": "1.7.12",
     "drizzle-orm": "0.45.4",
     "next": "16.4.3",
@@ -40,6 +41,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.4.3",
     "tailwindcss": "^4",
+    "trigger.dev": "4.8.1",
     "tsx": "4.23.15",
     "typescript": "^5",
     "vitest": "5.0.5"

@@ -14,17 +14,17 @@ export default function SearchPage() {
   return (
     <>
       <SiteHeader />
-      <main id="main" className="shell flex-1 py-14 md:py-20">
-        <div className="mx-auto max-w-3xl">
-          <h1 className="font-display text-4xl leading-tight font-medium tracking-[-0.015em] text-balance text-ink sm:text-5xl">
-            Search by PIN code
+      <main id="main" className="shell flex-1 pt-12 pb-20 md:pt-16 md:pb-28">
+        <div className="max-w-3xl">
+          <h1 className="font-display text-[2.4rem] leading-[1.08] font-medium tracking-[-0.02em] text-balance text-ink sm:text-[3.25rem]">
+            Search unclaimed money by PIN code
           </h1>
-          <p className="mt-4 max-w-2xl text-lg leading-relaxed text-ink-soft">
+          <p className="mt-5 max-w-2xl text-lg leading-relaxed text-ink-soft">
             Companies must publish the names of shareholders whose dividends went unclaimed. We
-            gather those lists so you can search them by the PIN code your family lived at.
+            gather those lists so you can look up the area your family lived in.
           </p>
         </div>
-        <div className="mt-12">
+        <div className="mt-10 md:mt-12">
           <Suspense>
             <PinSearch />
           </Suspense>

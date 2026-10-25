@@ -2,6 +2,7 @@
 // publish, indexed by PIN code and phonetic name keys for search.
 import {
   bigint,
+  boolean,
   char,
   date,
   index,
@@ -94,3 +95,46 @@ export const searchEvent = pgTable(
 export type UnclaimedRecord = typeof unclaimedRecord.$inferSelect;
 export type NewUnclaimedRecord = typeof unclaimedRecord.$inferInsert;
 export type RecordKind = (typeof recordKindEnum.enumValues)[number];
+
+// ---------------------------------------------------------------------------
+// Automatic discovery: company investor pages are crawled weekly for links to
+// statement files, and every file found is tracked here.
+
+export const statementStatusEnum = pgEnum("statement_status", [
+  "pending",
+  "imported",
+  "unchanged",
+  "no_records",
+  "unsupported",
+  "failed",
+]);
+
+export const companyPage = pgTable("company_page", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  company: text("company").notNull(),
+  url: text("url").notNull().unique(),
+  enabled: boolean("enabled").notNull().default(true),
+  lastCrawledAt: timestamp("last_crawled_at", { withTimezone: true }),
+  lastError: text("last_error"),
+  linksFound: integer("links_found").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}).enableRLS();
+
+export const statementFile = pgTable(
+  "statement_file",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    company: text("company").notNull(),
+    url: text("url").notNull().unique(),
+    kind: recordKindEnum("kind").notNull(),
+    financialYear: text("financial_year"),
+    foundOn: text("found_on"),
+    status: statementStatusEnum("status").notNull().default("pending"),
+    lastHash: text("last_hash"),
+    lastCheckedAt: timestamp("last_checked_at", { withTimezone: true }),
+    lastError: text("last_error"),
+    records: integer("records").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [index("statement_file_status_idx").on(t.status, t.lastCheckedAt)],
+).enableRLS();
