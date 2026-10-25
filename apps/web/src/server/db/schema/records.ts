@@ -69,7 +69,13 @@ export const unclaimedRecord = pgTable(
   ],
 ).enableRLS();
 
-export const searchKindEnum = pgEnum("search_kind", ["summary", "suggest", "match", "confirm"]);
+export const searchKindEnum = pgEnum("search_kind", [
+  "summary",
+  "suggest",
+  "match",
+  "confirm",
+  "scan",
+]);
 
 // Every search is logged so misuse (for example, someone sweeping a village)
 // can be spotted and blocked. Kept for 90 days.

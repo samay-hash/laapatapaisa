@@ -8,9 +8,7 @@ import { FormError, inputClass } from "@/components/ui/field";
 import { relationLabel } from "@/lib/labels";
 import { relations } from "@/lib/validation/case";
 import type { ConfirmedRecord, FirstNameSuggestion, RecordMatch } from "@/server/records-search";
-import { getJson, rupees } from "./shared";
-
-const PENDING_KEY = "lp.pendingSearch";
+import { getJson, PENDING_SEARCH_KEY as PENDING_KEY, queueNameSearch, rupees } from "./shared";
 
 const strengthLabel: Record<RecordMatch["strength"], string> = {
   exact: "Same name",
@@ -104,11 +102,7 @@ export function NameSearch({ pin }: { pin: string }) {
     if (r.status === 401) {
       setNeedsLogin(true);
       setMatches(null);
-      try {
-        sessionStorage.setItem(PENDING_KEY, JSON.stringify({ pin, name: full }));
-      } catch {
-        // Storage unavailable: the user will retype after logging in.
-      }
+      queueNameSearch(pin, full);
       return;
     }
     if (r.error) setError(r.error);

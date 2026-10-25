@@ -23,7 +23,8 @@ export function LeadList({ caseId, leads }: { caseId: string; leads: Lead[] }) {
   if (leads.length === 0) {
     return (
       <p className="mt-6 rounded-md border border-dashed border-rule px-5 py-8 text-center text-ink-soft">
-        No leads yet. Add the first clue below, even a company name on an old letter.
+        No leads yet. Scan an old paper above, or add a clue below, even a company name on an old
+        letter.
       </p>
     );
   }

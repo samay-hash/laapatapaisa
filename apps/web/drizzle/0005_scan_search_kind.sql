@@ -1,0 +1,1 @@
+ALTER TYPE "public"."search_kind" ADD VALUE 'scan';

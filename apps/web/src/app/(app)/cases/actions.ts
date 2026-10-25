@@ -10,6 +10,7 @@ import {
   relations,
   variantSchema,
 } from "@/lib/validation/case";
+import { leadTitleFor, ScannedDocument, sourceFor } from "@/lib/scan/document";
 import { confirmRecord, RateLimitError } from "@/server/records-search";
 import { getCurrentUser } from "@/server/session";
 import {
@@ -194,4 +195,37 @@ export async function saveRecordAction(
 export async function myCasesAction(): Promise<{ id: string; fullName: string }[]> {
   if (!(await getCurrentUser())) return [];
   return (await listCases()).map((c) => ({ id: c.id, fullName: c.fullName }));
+}
+
+/**
+ * Saves a scanned paper to a case as a lead. The scan result comes from the
+ * browser, so it is validated again here; the holder's name, if new, is added
+ * to the names to search.
+ */
+export async function addScannedLeadAction(caseId: string, input: unknown): Promise<FormState> {
+  if (!id.safeParse(caseId).success) return { error: NOT_FOUND };
+  const parsed = ScannedDocument.safeParse(input);
+  if (!parsed.success || parsed.data.documentType === "not_a_financial_paper") {
+    return { error: "This scan cannot be saved. Scan the paper again." };
+  }
+  const doc = parsed.data;
+  const reference =
+    doc.references
+      .map((r) => `${r.label} ${r.value}`)
+      .join(", ")
+      .slice(0, 80) || null;
+  const ok = await addLead(caseId, {
+    source: sourceFor(doc.documentType),
+    status: "clue",
+    title: leadTitleFor(doc).slice(0, 160),
+    institution: doc.institution?.slice(0, 120) ?? null,
+    reference,
+    amountRupees: doc.amountRupees == null ? null : Math.round(doc.amountRupees),
+  });
+  if (!ok) return { error: NOT_FOUND };
+  if (doc.holderName && doc.holderName.trim().length >= 2) {
+    await addVariant(caseId, doc.holderName.trim().slice(0, 120));
+  }
+  refresh();
+  return { ok: true };
 }

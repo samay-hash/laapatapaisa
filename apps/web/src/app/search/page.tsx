@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { PinSearch } from "@/components/search/pin-search";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { scanEnabled } from "@/server/document-scan";
 
 export const metadata: Metadata = {
   title: "Search by PIN code",
@@ -26,7 +27,7 @@ export default function SearchPage() {
         </div>
         <div className="mt-10 md:mt-12">
           <Suspense>
-            <PinSearch />
+            <PinSearch scanEnabled={scanEnabled} />
           </Suspense>
         </div>
       </main>

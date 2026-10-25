@@ -19,3 +19,14 @@ export async function getJson<T>(
 }
 
 export const isPin = (v: string) => /^[1-9]\d{5}$/.test(v);
+
+export const PENDING_SEARCH_KEY = "lp.pendingSearch";
+
+/** Queues a name search for /search to run as soon as that PIN loads. */
+export function queueNameSearch(pin: string, name: string) {
+  try {
+    sessionStorage.setItem(PENDING_SEARCH_KEY, JSON.stringify({ pin, name }));
+  } catch {
+    // Storage unavailable: the person types the name instead.
+  }
+}

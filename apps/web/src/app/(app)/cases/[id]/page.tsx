@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { z } from "zod";
 import { AddLeadForm } from "@/components/cases/add-lead-form";
+import { CaseScan } from "@/components/scan/case-scan";
+import { scanEnabled } from "@/server/document-scan";
 import { DeleteCase } from "@/components/cases/delete-case";
 import { LeadList } from "@/components/cases/lead-list";
 import { NameVariants } from "@/components/cases/name-variants";
@@ -68,6 +70,9 @@ async function CaseView({ params }: { params: Promise<{ id: string }> }) {
           <p className="mt-1 text-ink-soft">
             Every clue, search and claim for {nameParts(c.fullName)[0] ?? c.fullName}, in one place.
           </p>
+          <div className="mt-6">
+            <CaseScan caseId={c.id} enabled={scanEnabled} />
+          </div>
           <LeadList caseId={c.id} leads={c.leads} />
           <AddLeadForm caseId={c.id} />
         </section>

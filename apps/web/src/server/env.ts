@@ -21,6 +21,8 @@ const schema = z
     EMAIL_FROM: optional,
     GOOGLE_CLIENT_ID: optional,
     GOOGLE_CLIENT_SECRET: optional,
+    // Reading photos of old papers. Optional: without it, scanning is switched off.
+    ANTHROPIC_API_KEY: optional,
   })
   .superRefine((env, ctx) => {
     if (env.NODE_ENV === "production" && !isBuild && (!env.RESEND_API_KEY || !env.EMAIL_FROM)) {

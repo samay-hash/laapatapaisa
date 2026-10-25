@@ -1,12 +1,10 @@
 import "server-only";
-import { createHmac } from "node:crypto";
-import { and, count, eq, gte, inArray, or, sql, sum } from "drizzle-orm";
+import { and, count, eq, inArray, or, sql, sum } from "drizzle-orm";
 import { cacheLife } from "next/cache";
-import { headers } from "next/headers";
 import { matchStrength, nameKeys, phoneticKey, type MatchStrength } from "@/lib/names/phonetic";
 import { db } from "@/server/db";
-import { searchEvent, unclaimedRecord, unclaimedSource } from "@/server/db/schema";
-import { env } from "@/server/env";
+import { unclaimedRecord, unclaimedSource } from "@/server/db/schema";
+import { guard, logEvent } from "@/server/rate-limit";
 import { getCurrentUser } from "@/server/session";
 
 // Search over public unclaimed-money statements. Privacy rules:
@@ -16,53 +14,8 @@ import { getCurrentUser } from "@/server/session";
 //   the father's or husband's name on the record.
 // - Every search is logged and rate limited.
 
-type Kind = (typeof searchEvent.kind.enumValues)[number];
-
-const LIMITS: Record<Kind, { window: "hour" | "day"; max: number; perUser: boolean }> = {
-  summary: { window: "hour", max: 60, perUser: false },
-  suggest: { window: "hour", max: 400, perUser: false },
-  match: { window: "day", max: 40, perUser: true },
-  confirm: { window: "day", max: 30, perUser: true },
-};
-
-export class RateLimitError extends Error {}
-
-async function clientIpHash(): Promise<string> {
-  const h = await headers();
-  const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() || h.get("x-real-ip") || "unknown";
-  return createHmac("sha256", env.BETTER_AUTH_SECRET).update(ip).digest("hex").slice(0, 32);
-}
-
-async function guard(kind: Kind, userId: string | null): Promise<string> {
-  const ipHash = await clientIpHash();
-  const rule = LIMITS[kind];
-  const since = new Date(Date.now() - (rule.window === "hour" ? 3600_000 : 86_400_000));
-  const who =
-    rule.perUser && userId ? eq(searchEvent.userId, userId) : eq(searchEvent.ipHash, ipHash);
-  const [row] = await db
-    .select({ n: count() })
-    .from(searchEvent)
-    .where(and(who, eq(searchEvent.kind, kind), gte(searchEvent.createdAt, since)));
-  if ((row?.n ?? 0) >= rule.max) {
-    throw new RateLimitError(
-      rule.window === "hour"
-        ? "Too many searches from this connection. Try again in an hour."
-        : "You have reached today's search limit. Try again tomorrow.",
-    );
-  }
-  return ipHash;
-}
-
-async function log(
-  kind: Kind,
-  ipHash: string,
-  userId: string | null,
-  pinCode: string,
-  query: string | null,
-  resultCount: number,
-) {
-  await db.insert(searchEvent).values({ kind, ipHash, userId, pinCode, query, resultCount });
-}
+export { RateLimitError } from "@/server/rate-limit";
+const log = logEvent;
 
 // ---------------------------------------------------------------------------
 

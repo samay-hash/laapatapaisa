@@ -17,6 +17,7 @@
     "data:ingest-list": "tsx scripts/ingest-list.mts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "1.3.0",
     "@trigger.dev/sdk": "4.8.1",
     "better-auth": "1.7.12",
     "drizzle-orm": "0.45.4",

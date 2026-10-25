@@ -7,9 +7,12 @@ import type { PinSummary } from "@/server/records-search";
 import { AreaReport } from "./area-report";
 import { NameSearch } from "./name-search";
 import { PinBoxes } from "./pin-boxes";
-import { getJson, isPin } from "./shared";
+import { ScanPaper } from "@/components/scan/scan-paper";
+import { buttonClass } from "@/components/ui/button";
+import { pinFrom } from "@/lib/scan/document";
+import { getJson, isPin, queueNameSearch } from "./shared";
 
-export function PinSearch() {
+export function PinSearch({ scanEnabled }: { scanEnabled: boolean }) {
   const params = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -17,6 +20,9 @@ export function PinSearch() {
     const p = params.get("pin") ?? "";
     return isPin(p) ? p : "";
   });
+
+  // Bumped after a scan so the name search remounts and runs the queued name.
+  const [scanRun, setScanRun] = useState(0);
 
   // The latest lookup, tagged with its PIN so a stale answer never shows.
   const [lookup, setLookup] = useState<{
@@ -61,6 +67,54 @@ export function PinSearch() {
         </div>
       </div>
 
+      {scanEnabled ? (
+        <details className="group mt-4 rounded-xl border border-paper-edge open:bg-transparent">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-6 py-4 text-ink [&::-webkit-details-marker]:hidden">
+            <span>
+              <span className="font-semibold">Have an old paper?</span>{" "}
+              <span className="text-ink-soft">
+                Scan it and we fill in the PIN and name for you.
+              </span>
+            </span>
+            <span
+              aria-hidden="true"
+              className="font-display text-2xl leading-none text-ink-soft transition-transform group-open:rotate-45"
+            >
+              +
+            </span>
+          </summary>
+          <div className="px-4 pb-4 sm:px-6 sm:pb-6">
+            <ScanPaper
+              enabled
+              renderActions={(doc, reset) => {
+                const scannedPin = pinFrom(doc);
+                if (!scannedPin || !doc.holderName) {
+                  return (
+                    <p className="text-sm text-ink-soft">
+                      No PIN or name was found on this paper. Type the PIN above instead.
+                    </p>
+                  );
+                }
+                return (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      queueNameSearch(scannedPin, doc.holderName!);
+                      setScanRun((n) => n + 1);
+                      setPin(scannedPin);
+                      reset();
+                    }}
+                    className={buttonClass("primary", "px-4 py-2.5 text-sm")}
+                  >
+                    Search {scannedPin} for {doc.holderName}
+                  </button>
+                );
+              }}
+            />
+          </div>
+        </details>
+      ) : null}
+
       <div aria-live="polite">
         {loading ? <LoadingState pin={pin} /> : null}
         {current?.error ? (
@@ -77,7 +131,7 @@ export function PinSearch() {
           </div>
           <div>
             {summary.records > 0 ? (
-              <NameSearch key={summary.pinCode} pin={summary.pinCode} />
+              <NameSearch key={`${summary.pinCode}-${scanRun}`} pin={summary.pinCode} />
             ) : (
               <EmptyGuide hasNearby={summary.nearby.length > 0} />
             )}
